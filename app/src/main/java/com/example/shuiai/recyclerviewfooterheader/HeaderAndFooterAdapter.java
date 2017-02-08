@@ -1,7 +1,9 @@
 package com.example.shuiai.recyclerviewfooterheader;
 
-import android.support.v4.util.SparseArrayCompat;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -14,8 +16,8 @@ import android.view.ViewGroup;
 public class HeaderAndFooterAdapter extends RecyclerView.Adapter<MyViewHolder> {
     private static final int ITEM_HEADER = 100000;
     private static final int ITEM_FOOTER = 200000;
-    private SparseArrayCompat<View> headerViews = new SparseArrayCompat<>();
-    private SparseArrayCompat<View> footerViews = new SparseArrayCompat<>();
+    private SparseArray<View> headerViews = new SparseArray<>();
+    private SparseArray<View> footerViews = new SparseArray<>();
     private RecyclerView.Adapter innerAdapter;
 
     public HeaderAndFooterAdapter(RecyclerView.Adapter adapter) {
@@ -25,14 +27,22 @@ public class HeaderAndFooterAdapter extends RecyclerView.Adapter<MyViewHolder> {
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         if (headerViews.get(viewType) != null) {
-            innerAdapter.createViewHolder(parent,)
+            return new MyViewHolder(headerViews.get(viewType));
+        } else if (footerViews.get(viewType) != null) {
+            return new MyViewHolder(footerViews.get(viewType));
         }
-        return null;
+        return (MyViewHolder) innerAdapter.onCreateViewHolder(parent, viewType);
     }
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
-
+        if (isHeaderPosition(position)) {
+            return;
+        }
+        if (isFooterPosition(position)) {
+            return;
+        }
+        innerAdapter.onBindViewHolder(holder, position - headerViews.size());
     }
 
     @Override
@@ -86,5 +96,54 @@ public class HeaderAndFooterAdapter extends RecyclerView.Adapter<MyViewHolder> {
      */
     public boolean isFooterPosition(int position) {
         return headerViews.size() + innerAdapter.getItemCount() <= position;
+    }
+
+    /**
+     * 设置GridLayoutManger时的spansize
+     *
+     * @param recyclerView
+     */
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        innerAdapter.onAttachedToRecyclerView(recyclerView);
+        final RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+        if (layoutManager instanceof GridLayoutManager) {
+            GridLayoutManager gridLayoutManager = (GridLayoutManager) layoutManager;
+            final GridLayoutManager.SpanSizeLookup spanSizeLookup = gridLayoutManager.getSpanSizeLookup();
+            gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                @Override
+                public int getSpanSize(int position) {
+                    int viewType = getItemViewType(position);
+                    if (headerViews.get(viewType) != null) {
+                        return ((GridLayoutManager) layoutManager).getSpanCount();
+                    } else if (footerViews.get(viewType) != null) {
+                        return ((GridLayoutManager) layoutManager).getSpanCount();
+                    }
+                    if (spanSizeLookup != null) {
+                        spanSizeLookup.getSpanSize(position);
+                    }
+                    return 1;
+                }
+            });
+            gridLayoutManager.setSpanCount(gridLayoutManager.getSpanCount());
+        }
+    }
+
+    /**
+     * 设置瀑布流时的脚布局和头布局
+     *
+     * @param holder
+     */
+    @Override
+    public void onViewAttachedToWindow(MyViewHolder holder) {
+        innerAdapter.onViewAttachedToWindow(holder);
+        int position = holder.getLayoutPosition();
+        if (isHeaderPosition(position) || isFooterPosition(position)) {
+            ViewGroup.LayoutParams layoutParams = holder.itemView.getLayoutParams();
+            if (layoutParams != null && layoutParams instanceof StaggeredGridLayoutManager.LayoutParams) {
+                StaggeredGridLayoutManager.LayoutParams lp = (StaggeredGridLayoutManager.LayoutParams) layoutParams;
+                lp.setFullSpan(true);
+            }
+        }
     }
 }

@@ -11,7 +11,7 @@ import android.view.View;
  */
 
 public class MyViewHolder extends RecyclerView.ViewHolder {
-    private View itemView;
+    public View itemView;
 
     public MyViewHolder(View itemView) {
         super(itemView);
