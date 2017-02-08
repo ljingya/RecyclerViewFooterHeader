@@ -2,8 +2,8 @@ package com.example.shuiai.recyclerviewfooterheader;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        recyclerView.setLayoutManager(new GridLayoutManager(this,3));
         DataAdapter dataAdapter = new DataAdapter(this, titles);
         HeaderAndFooterAdapter mHeaderAndFooterAdapter = new HeaderAndFooterAdapter(dataAdapter);
         TextView textView = new TextView(this);

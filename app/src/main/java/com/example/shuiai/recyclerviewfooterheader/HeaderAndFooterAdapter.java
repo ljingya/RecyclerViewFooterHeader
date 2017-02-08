@@ -113,19 +113,9 @@ public class HeaderAndFooterAdapter extends RecyclerView.Adapter<MyViewHolder> {
             gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                 @Override
                 public int getSpanSize(int position) {
-                    int viewType = getItemViewType(position);
-                    if (headerViews.get(viewType) != null) {
-                        return ((GridLayoutManager) layoutManager).getSpanCount();
-                    } else if (footerViews.get(viewType) != null) {
-                        return ((GridLayoutManager) layoutManager).getSpanCount();
-                    }
-                    if (spanSizeLookup != null) {
-                        spanSizeLookup.getSpanSize(position);
-                    }
-                    return 1;
+                    return isHeaderPosition(position) || isFooterPosition(position) ? ((GridLayoutManager) layoutManager).getSpanCount() : 1;
                 }
             });
-            gridLayoutManager.setSpanCount(gridLayoutManager.getSpanCount());
         }
     }
 
